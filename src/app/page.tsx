@@ -1,42 +1,27 @@
 import { prisma } from "@/lib/prisma";
 import { ChevronRightIcon } from "@heroicons/react/20/solid";
 import Link from "next/link";
-import { Suspense } from "react";
-import { Spinner } from "./components/spinner";
 
-export default async function Page({
-  searchParams,
-}: Readonly<{
-  searchParams: { [key: string]: string | string[] | undefined };
-}>) {
-  const search =
-    typeof searchParams.search === "string" ? searchParams.search : undefined;
+export default async function Page() {
+  const lists = await prisma.list.findMany();
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50 px-8 pt-12">
-      <div className="flex items-center justify-between">
-        <div className="mt-1 w-80"></div>
-        <div className="ml-16 mt-0 flex-none">
-          <button
-            type="button"
-            className="block rounded-md border border-indigo-600 bg-indigo-600 px-3 py-1.5 text-center text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-          >
-            Add user
-          </button>
-        </div>
-      </div>
-
-      <Suspense fallback={<Loading />}>
-        <UsersTable searchParams={searchParams} />
-      </Suspense>
+    <div className="flex min-h-screen flex-col bg-neutral-950 px-8 pt-12 text-neutral-200">
+      <Pagination lists={lists} />
     </div>
   );
 }
 
-function Loading() {
+function Pagination({ lists }) {
   return (
-    <div className="flex h-full grow items-center justify-center bg-gray-50">
-      Loading...
+    <div>
+      {lists.map((list) {
+        return (
+          <Link href={/?list=${list}}>
+            <div className="w-2 h-2 bg-neutral-500 rounded-full"></div>
+          </Link>
+        )
+      } )}
     </div>
   );
 }
@@ -66,7 +51,7 @@ async function UsersTable({
       ? +searchParams.page
       : 1;
 
-  const users = await prisma.list.findMany({
+  const lists = await prisma.list.findMany({
     take: perPage,
     skip: (page - 1) * perPage,
     where: {
@@ -95,14 +80,8 @@ async function UsersTable({
               <table className="min-w-full divide-y divide-gray-300">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="w-[62px] py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:w-auto">
-                      ID
-                    </th>
                     <th className="w-[130px] px-3 py-3.5 text-left text-sm font-semibold text-gray-900 sm:w-auto">
                       Name
-                    </th>
-                    <th className="w-[175px] px-3 py-3.5 text-left text-sm font-semibold text-gray-900 sm:w-auto">
-                      Email
                     </th>
                     <th className="relative py-3.5 pl-3 pr-4">
                       <span className="sr-only">Edit</span>
@@ -110,13 +89,10 @@ async function UsersTable({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
-                  {users.map((user) => (
-                    <tr key={user.id}>
-                      <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900">
-                        {user.id}
-                      </td>
+                  {lists.map((list) => (
+                    <tr key={list.id}>
                       <td className="max-w-[130px] truncate whitespace-nowrap px-3 py-4 text-sm font-medium sm:w-auto">
-                        {user.title}
+                        {list.title}
                       </td>
                       <td className="relative whitespace-nowrap py-4 pl-4 pr-4 text-right text-sm font-medium">
                         <Link
