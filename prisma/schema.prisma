@@ -1,0 +1,25 @@
+// schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model List {
+  id    String @id @default(uuid())
+  title String
+  tasks Task[]
+}
+
+model Task {
+  id          String @id @default(uuid())
+  title       String
+  description String?
+  complete    Boolean
+  listId      String
+  list        List   @relation(fields: [listId], references: [id])
+}
